@@ -1,0 +1,66 @@
+{
+  "name": "${localWorkspaceFolderBasename}",
+  "image": "mcr.microsoft.com/devcontainers/ruby:3.3-bookworm",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/ruby:1": {
+      "version": "3.3"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-gems,target=/usr/local/bundle,type=volume",
+    "source=${localWorkspaceFolderBasename}-bashhistory,target=/commandhistory,type=volume"
+  ],
+  
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y build-essential libicu-dev libmagic-dev cmake pkg-config libssl-dev && git config --global --add safe.directory ${containerWorkspaceFolder}",
+  "postCreateCommand": "gem install bundler && bundle config set --local path 'vendor/bundle' && bundle install || gem install workato-sdk workato-connector-sdk || true",
+  "postAttachCommand": "[ -f bin/dev ] && bin/dev || [ -f config.ru ] && bundle exec rails server -b 0.0.0.0 || true",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "github.copilot",
+        "shopify.ruby-lsp",
+        "kaiwood.endwise",
+        "castwide.solargraph"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "editor.formatOnSave": true,
+        "ruby.format": "rubocop",
+        "ruby.lint": {
+          "rubocop": true
+        },
+        "files.watcherExclude": {
+          "**/vendor/bundle/**": true,
+          "**/node_modules/**": true,
+          "**/tmp/**": true,
+          "**/log/**": true,
+          "**/.bundle/**": true
+        }
+      }
+    }
+  },
+  
+  "forwardPorts": [3000, 3001, 4567, 9292, 5000, 8080],
+  
+  "remoteEnv": {
+    "HISTFILE": "/commandhistory/.bash_history",
+    "RAILS_ENV": "development",
+    "BUNDLE_APP_CONFIG": "/usr/local/bundle",
+    "BUNDLE_JOBS": "4",
+    "BUNDLE_RETRY": "3"
+  }
+}
