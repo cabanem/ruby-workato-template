@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'workato-sdk'
 gem 'workato-connector-sdk'
 gem 'charlock_holmes', '~> 0.7.7'
 
