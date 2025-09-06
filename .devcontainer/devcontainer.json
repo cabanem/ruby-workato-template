@@ -1,7 +1,6 @@
 {
   "name": "${localWorkspaceFolderBasename}",
   "image": "mcr.microsoft.com/devcontainers/ruby:3.3-bookworm",
-  
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
@@ -17,16 +16,13 @@
       "version": "20"
     }
   },
-  
   "mounts": [
     "source=${localWorkspaceFolderBasename}-gems,target=/usr/local/bundle,type=volume",
     "source=${localWorkspaceFolderBasename}-bashhistory,target=/commandhistory,type=volume"
   ],
-  
   "onCreateCommand": "sudo apt-get update && sudo apt-get install -y build-essential libicu-dev libmagic-dev cmake pkg-config libssl-dev && git config --global --add safe.directory ${containerWorkspaceFolder}",
-  "postCreateCommand": "gem install bundler && bundle config set --local path 'vendor/bundle' && bundle install || gem install workato-sdk workato-connector-sdk || true",
-  "postAttachCommand": "[ -f bin/dev ] && bin/dev || [ -f config.ru ] && bundle exec rails server -b 0.0.0.0 || true",
-  
+  "postCreateCommand": "bash -c 'gem install bundler && bundle config set --local path \"vendor/bundle\" && if [ -f Gemfile ]; then if [ ! -f Gemfile.lock ]; then echo \"No Gemfile.lock found, generating it...\" && (bundle install || (echo \"Bundle install failed, attempting to install known gems individually...\" && gem install workato-connector-sdk charlock_holmes -v \"~> 0.7.7\" rubocop pry rspec && bundle lock --add-platform x86_64-linux || echo \"Warning: Could not generate complete Gemfile.lock\")); else echo \"Gemfile.lock exists, running bundle install...\" && bundle install; fi; else echo \"No Gemfile found, skipping bundle operations\"; fi && echo \"Setup complete!\"'",
+  "postAttachCommand": "bash -c 'if [ -f Gemfile ] && [ ! -f Gemfile.lock ]; then echo \"Warning: Gemfile.lock still missing, attempting to create...\" && (bundle lock --add-platform x86_64-linux || echo \"Could not create Gemfile.lock - please check your Gemfile for errors\"); fi && ([ -f bin/dev ] && bin/dev || [ -f config.ru ] && bundle exec rails server -b 0.0.0.0 || true)'",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -49,18 +45,20 @@
           "**/tmp/**": true,
           "**/log/**": true,
           "**/.bundle/**": true
-        }
+        },
+        "ruby.lsp.enabled": true,
+        "ruby.lsp.formatter": "auto"
       }
     }
   },
-  
   "forwardPorts": [3000, 3001, 4567, 9292, 5000, 8080],
-  
   "remoteEnv": {
     "HISTFILE": "/commandhistory/.bash_history",
     "RAILS_ENV": "development",
     "BUNDLE_APP_CONFIG": "/usr/local/bundle",
     "BUNDLE_JOBS": "4",
-    "BUNDLE_RETRY": "3"
-  }
+    "BUNDLE_RETRY": "3",
+    "BUNDLE_WITHOUT": "production"
+  },
+  "waitFor": "postCreateCommand"
 }
